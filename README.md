@@ -3,6 +3,148 @@
 Here is your **full, production-ready, copy-paste GitHub `README.md`** for Linux project migration **without Docker or Git**, covering Python, Java, PHP, Ruby, Maven, “Sintara”, project transfer, configuration, setup, verification, and extra admin tips.
 
 ---
+Here you go — a **Windows-only version** of the scripts.
+No Linux commands.
+You can run these in **PowerShell** or **Command Prompt**.
+
+---
+
+# ✅ **1. Prerequisites (Windows)**
+
+### **Install AWS CLI**
+
+Download & install:
+(Windows installer → AWS CLI v2)
+
+### **Configure AWS CLI**
+
+```powershell
+aws configure
+```
+
+Enter:
+
+* AWS Access Key
+* AWS Secret Key
+* Region: **us-east-1**
+* Output: json
+
+### **Install MySQL Client (Windows)**
+
+Install from MySQL Installer:
+Select → **MySQL Shell / MySQL Client**.
+
+---
+
+# 🚀 **2. PowerShell Script: Create RDS MySQL Instance in AWS**
+
+Save as: **create-rds.ps1**
+
+```powershell
+# Variables
+$DBInstance = "mysql-lab-01"
+$DBName = "classicmodels"
+$User = "admin"
+$Pass = "YourStrongPassword123!"
+$Region = "us-east-1"
+
+Write-Host "Creating RDS MySQL Instance..."
+
+aws rds create-db-instance `
+    --db-instance-identifier $DBInstance `
+    --allocated-storage 20 `
+    --db-instance-class db.t3.micro `
+    --engine mysql `
+    --engine-version "8.0.35" `
+    --master-username $User `
+    --master-user-password $Pass `
+    --backup-retention-period 0 `
+    --no-multi-az `
+    --publicly-accessible `
+    --storage-type gp2 `
+    --region $Region `
+    --tags Key=name,Value=mysql-lab-01 Key=project,Value=mysql-lab Key=roll_no,Value=YOURROLL Key=date,Value=TODAYS_DATE
+```
+
+Run it:
+
+```powershell
+powershell -File create-rds.ps1
+```
+
+---
+
+# 📡 **3. Script to Get RDS Endpoint (Windows)**
+
+```powershell
+aws rds describe-db-instances --db-instance-identifier mysql-lab-01 --query "DBInstances[0].Endpoint.Address" --output text
+```
+
+Example output:
+
+```
+mysql-lab-01.abcxyz12345.us-east-1.rds.amazonaws.com
+```
+
+---
+
+# 🔗 **4. Connect to RDS MySQL (Windows Terminal)**
+
+Replace `<endpoint>`:
+
+```cmd
+mysql -h <endpoint> -u admin -p
+```
+
+Enter your password.
+
+---
+
+# 📥 **5. Import SQL File to RDS (Windows)**
+
+Place **classicmodels.sql** in the same folder.
+
+```cmd
+mysql -h <endpoint> -u admin -p classicmodels < classicmodels.sql
+```
+
+If DB does not exist, create it:
+
+```cmd
+mysql -h <endpoint> -u admin -p -e "CREATE DATABASE classicmodels;"
+```
+
+---
+
+# 📤 **6. Export Database from RDS (Windows)**
+
+Export to a file:
+
+```cmd
+mysqldump -h <endpoint> -u admin -p classicmodels > classicmodels_export_01.sql
+```
+
+---
+
+# ☁️ **7. Upload Export to S3 (Windows)**
+
+First create the bucket:
+
+```powershell
+aws s3 mb s3://rollno-bucket-01 --region us-east-1
+```
+
+Upload the SQL file:
+
+```powershell
+aws s3 cp classicmodels_export_01.sql s3://rollno-bucket-01/
+```
+
+---
+
+# 🎉 **DONE**
+
+
 
 # **Project Migration Guide (No Docker / No Git)**
 
